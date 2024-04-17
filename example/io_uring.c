@@ -1,45 +1,3 @@
-# c2sc
-convert c code to shellcode
-
-but preserve struct and macro info in source code
-
-only x86_64 supported
-
-## advantage
-
-reference C struct and macro as normal, and exploit gcc -Os optimization for complicate shellcode logic.
-
-## usage
-
-write your c code in source.c and run ./gen.py
-
-make sure that your c code compile
-
-## example
-
-```python
-from pwn import *  
-import gen
-
-sh = process('test/test')
-
-gdb.attach(sh)
-sh.send(gen.my_asm('./source.c', opt=True))
-
-sh.interactive()
-```
-
-```C
-#include <stdio.h>
-int main() {
-    puts("hello world"); // this is implemented in utils.h
-    return 0;
-}
-```
-
-or
-
-```C
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -102,28 +60,3 @@ int main(void)
   syscall(SYS_io_uring_enter, uring_fd, 1, 3, IORING_ENTER_GETEVENTS, NULL, 0);
   return 0;
 }
-```
-
-## how it works
-
-use gcc preprocessor to get all macro and struct definition and strip those useless extern function declarations (use python regex, ugly)
-
-merge them into one defs.h header file
-
-and implement a custom syscall header file by mimicing glibc syscall wrapper code
-
-there is also some small points, like 
-
-* using linker script to make sure main is always first one 
-* use gcc options to strip unused function
-* merge code section and data section into one section, and copy them all
-
-the code is short, find code you interested by yourself.
-
-## more todo
-
-add a option to gen.py for checking if source.c compiled normally
-
-implement more needed syscall
-
-more test
